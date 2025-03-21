@@ -4,8 +4,8 @@ import pandas as pd
 import random
 import uuid
 from faker import Faker
-# from google.cloud import bigquery
-# from config import PROJECT_ID, DATASET_ID
+from google.cloud import bigquery
+from config import PROJECT_ID, DATASET_ID
 
 
 # Initialize the BigQuery client
@@ -25,7 +25,7 @@ from faker import Faker
 # import uuid
 
 #Initialize the BigQuery client
-#client = bigquery.Client(project=PROJECT_ID)
+
 
 
 
@@ -145,33 +145,35 @@ def clean_and_transform_data(df):
 #     print(f"Data loaded to {table_name} successfully.")
 
 
-# def load_data_to_bigquery(df, table_name):
-#     """Loads the cleaned data into BigQuery."""
-#     table_id = f"{PROJECT_ID}.{DATASET_ID}.{table_name}"
+def load_data_to_bigquery(df, table_name):
 
-#     # Print DataFrame Columns
-#     print("Columns in DataFrame before upload:", df.columns.tolist())
+    client = bigquery.Client(project=PROJECT_ID)
+    """Loads the cleaned data into BigQuery."""
+    table_id = f"{PROJECT_ID}.{DATASET_ID}.{table_name}"
 
-#     # Ensure 'review_creation_date' exists before adding it to schema
-#     expected_columns = ['order_purchase_timestamp', 'order_delivered_customer_date', 'order_estimated_delivery_date']
-#     available_columns = [col for col in expected_columns if col in df.columns]
+    # Print DataFrame Columns
+    print("Columns in DataFrame before upload:", df.columns.tolist())
 
-#     # Convert to datetime format
-#     for col in available_columns:
-#         df[col] = pd.to_datetime(df[col], errors='coerce')
+    # Ensure 'review_creation_date' exists before adding it to schema
+    expected_columns = ['order_purchase_timestamp', 'order_delivered_customer_date', 'order_estimated_delivery_date']
+    available_columns = [col for col in expected_columns if col in df.columns]
 
-#     # Define BigQuery Schema dynamically based on available columns
-#     schema = [bigquery.SchemaField(col, "TIMESTAMP") for col in available_columns]
+    # Convert to datetime format
+    for col in available_columns:
+        df[col] = pd.to_datetime(df[col], errors='coerce')
 
-#     job_config = bigquery.LoadJobConfig(
-#         schema=schema,
-#         write_disposition="WRITE_TRUNCATE",
-#     )
+    # Define BigQuery Schema dynamically based on available columns
+    schema = [bigquery.SchemaField(col, "TIMESTAMP") for col in available_columns]
 
-#     # Upload to BigQuery
-#     job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
-#     job.result()  # Wait for job completion
-#     print(f"Data loaded to {table_name} successfully.")
+    job_config = bigquery.LoadJobConfig(
+        schema=schema,
+        write_disposition="WRITE_TRUNCATE",
+    )
+
+    # Upload to BigQuery
+    job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
+    job.result()  # Wait for job completion
+    print(f"Data loaded to {table_name} successfully.")
 
 
 
