@@ -7,14 +7,14 @@ client = bigquery.Client(project=PROJECT_ID)
 
 def execute_query(query, table_name):
     """Executes a query and writes results to a BigQuery table."""
-    print(f"🚀 Running query for {table_name}...")
+    print(f" Running query for {table_name}...")
 
     try:
         query_job = client.query(query)  # Run query directly without setting a destination table
         query_job.result()  # Wait for the query to finish
-        print(f"✅ {table_name} updated successfully!")
+        print(f" {table_name} updated successfully!")
     except Exception as e:
-        print(f"❌ Error executing query for {table_name}: {e}")
+        print(f" Error executing query for {table_name}: {e}")
 
 # -------------------- Aggregation Queries --------------------
 
