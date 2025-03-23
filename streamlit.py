@@ -24,91 +24,114 @@ page = st.sidebar.radio("Go to", ["Overview", "Schema", "KPIs", "Aggregates", "D
 # 🏠 Overview Page
 # -------------------------------------- #
 if page == "Overview":
-    st.title(" E-Commerce Data Analysis")
-    st.write("This dashboard provides insights into **order trends, customer behavior, and product performance**.")
+    st.title("E-Commerce Dashboard")
+
+    st.markdown("""
+    ##  Unlock Actionable Insights from E-Commerce Data  
+
+    Welcome to the **E-Commerce KPI Dashboard**, designed to help businesses track, analyze, and optimize key performance indicators (KPIs).  
+    This dashboard enables **data-driven decision-making** by providing **real-time insights** into sales, customer trends, and product performance.
+
+    ### Key Features  
+    - **Database Schema**: Understand the data model and structure.  
+    - **Yearly KPIs**: Track revenue growth, customer retention, and order volume.  
+    - **Product Performance**: Identify best-selling and least-selling product categories.  
+    - **Regional Insights**: Analyze sales trends at **state** and **city** levels.  
+    - **Aggregated Business Metrics**: Get pre-processed insights on customer behavior, payment trends, and order patterns.  
+    - **Data Marts**: Optimized datasets for efficient business intelligence reporting.  
+
+    **Use the sidebar** to navigate through different sections and explore the data-driven insights.""")
 
 # -------------------------------------- #
 # 📂 Database Schema Page
 # -------------------------------------- #
+# -------------------------------------- #
+# 📂 Database Schema Page
+# -------------------------------------- #
 elif page == "Schema":
-    st.title(" Database Schema")
+    st.title("Database Schema")
 
-    schema_options = ["fact_orders", "dim_customers", "dim_products", "dim_orders", "dim_sellers"]
-    selected_table = st.selectbox("Select Table", schema_options)
+    st.markdown("""
+    ## Understanding the Data Model  
 
-    query = f"SELECT * FROM `e-commerce-453806.New_E_Commerce.{selected_table}`LIMIT 10000"
-    df = fetch_data(query)
-    st.dataframe(df)
+    The database follows a **star schema** model with a central **fact table** and multiple **dimension tables** for analytical efficiency.  
+
+    ### **Core Tables**  
+    - **fact_orders**: Stores transaction-level sales and order data.  
+    - **dim_customers**: Contains customer demographics and location details.  
+    - **dim_products**: Holds product catalog data, including categories and attributes.  
+    - **dim_orders**: Provides details on order processing, shipping, and delivery.  
+    - **dim_sellers**: Includes seller information and operational metrics.  
+    - **dim_payment_types**: Has the data aboout the differernt payment types.
+
+    **Explore the schema below:**  
+    """)
+
+    # Display schema image without aggregates and data marts
+    st.image("schema.png", caption="Database Schema", use_container_width=True)
+
+    st.markdown("""
+    ## Additional Data Processing Layers  
+    Beyond the core schema, **Aggregates** and **Data Marts** play a crucial role in optimizing analytics:  
+
+    - **Aggregates**: Precomputed summaries for fast analysis of sales trends, customer behavior, and payment insights.  
+    - **Data Marts**: Optimized datasets designed for advanced business intelligence, enabling deeper market and product analysis.  
+
+    While these are not directly represented in the schema, they **enhance performance** and enable **efficient data retrieval** for visualization and reporting.
+    """)
+
+
 
 # -------------------------------------- #
-# 📊 KPIs by State & City
+#  KPIs by State & City
 # -------------------------------------- #
 elif page == "KPIs":
     st.title("Key Performance Indicators (KPIs)")
 
-    # Fetch unique states & cities
-    location_query = """
-        SELECT DISTINCT customer_state, customer_city
-        FROM `e-commerce-453806.New_E_Commerce.dim_customers`
-        ORDER BY customer_state, customer_city;
-    """
-    location_df = fetch_data(location_query)
+   # Fetch unique states  
+    location_query = """  
+    SELECT DISTINCT customer_state  
+    FROM `e-commerce-453806.New_E_Commerce.dim_customers`  
+    ORDER BY customer_state;  
+"""  
+    location_df = fetch_data(location_query)  
 
-    # Toggle: State & City OR Only State
-    view_option = st.radio("View Type",  "State")
+# State Selection  
+    selected_state = st.selectbox("Select State", location_df["customer_state"].unique())  
 
-    # if view_option == "State & City":
-    #     selected_state = st.selectbox("Select State", location_df["customer_state"].unique())
-    #     filtered_cities = location_df[location_df["customer_state"] == selected_state]["customer_city"].unique()
-    #     selected_city = st.selectbox("Select City", filtered_cities)
+# KPI Query: Most & Least Sold Product Category for a STATE  
+    category_query = f"""  
+    SELECT  
+        p.product_category_name_english AS category,  
+        COUNT(f.order_id) AS total_orders  
+    FROM `e-commerce-453806.New_E_Commerce.fact_orders` f  
+    JOIN `e-commerce-453806.New_E_Commerce.dim_customers` c ON f.customer_id = c.customer_id  
+    JOIN `e-commerce-453806.New_E_Commerce.dim_products` p ON f.product_id = p.product_id  
+    WHERE c.customer_state = '{selected_state}'  
+    GROUP BY category  
+    ORDER BY total_orders DESC;  
+"""  
 
-    #     # KPI Query: Most & Least Sold Product Category
-    #     category_query = f"""
-    #         SELECT 
-    #             p.product_category_name_english AS category,
-    #             COUNT(f.order_id) AS total_orders
-    #         FROM `e-commerce-453806.New_E_Commerce.fact_orders` f
-    #         JOIN `e-commerce-453806.New_E_Commerce.dim_customers` c ON f.customer_id = c.customer_id
-    #         JOIN `e-commerce-453806.New_E_Commerce.dim_products` p ON f.product_id = p.product_id
-    #         WHERE c.customer_state = '{selected_state}' AND c.customer_city = '{selected_city}'
-    #         GROUP BY category
-    #         ORDER BY total_orders DESC;
-    #    """
-    if view_option == "State" :
-        selected_state = st.selectbox("Select State", location_df["customer_state"].unique())
+    df_category = fetch_data(category_query)  
 
-        # KPI Query: Most & Least Sold Product Category for a STATE
-        category_query = f"""
-            SELECT 
-                p.product_category_name_english AS category,
-                COUNT(f.order_id) AS total_orders
-            FROM `e-commerce-453806.New_E_Commerce.fact_orders` f
-            JOIN `e-commerce-453806.New_E_Commerce.dim_customers` c ON f.customer_id = c.customer_id
-            JOIN `e-commerce-453806.New_E_Commerce.dim_products` p ON f.product_id = p.product_id
-            WHERE c.customer_state = '{selected_state}'
-            GROUP BY category
-            ORDER BY total_orders DESC;
-        """
+    if not df_category.empty:  
+        most_sold = df_category.iloc[0]  
+        least_sold = df_category.iloc[-1]  
 
-    df_category = fetch_data(category_query)
+        st.success(f"📈 Most Sold Category: **{most_sold['category']}** ({most_sold['total_orders']} orders)")  
+        st.error(f"📉 Least Sold Category: **{least_sold['category']}** ({least_sold['total_orders']} orders)")  
 
-    if not df_category.empty:
-        most_sold = df_category.iloc[0]
-        least_sold = df_category.iloc[-1]
+    # Visualization  
+        fig_category = px.bar(df_category, x="category", y="total_orders", title="Sales by Category", text_auto=True)  
+        st.plotly_chart(fig_category)  
+    else:  
+        st.warning("⚠ No data found for the selected state.")  
 
-        st.success(f"📈 Most Sold Category: **{most_sold['category']}** ({most_sold['total_orders']} orders)")
-        st.error(f"📉 Least Sold Category: **{least_sold['category']}** ({least_sold['total_orders']} orders)")
-
-        # Visualization
-        fig_category = px.bar(df_category, x="category", y="total_orders", title="Sales by Category", text_auto=True)
-        st.plotly_chart(fig_category)
-    else:
-        st.warning("⚠ No data found for the selected location.")
 
     # -------------------------------------- #
-    # 📈 High-Performing Product Categories KPI
+    # High-Performing Product Categories KPI
     # -------------------------------------- #
-    st.title(" KPI: High-Performing Product Categories Above Average Revenue")
+    st.title("High-Performing Product Categories Above Average Revenue")
 
     high_perf_query = """
         WITH category_revenue AS (
@@ -142,7 +165,7 @@ elif page == "KPIs":
         st.warning("⚠ No high-performing categories found.")
 
    # -------------------------------------- #
-# 📆 Yearly KPIs Section
+# Yearly KPIs Section
 # -------------------------------------- #
     st.title(" Yearly KPI Analysis")
 
@@ -163,31 +186,41 @@ elif page == "KPIs":
     else:
         st.dataframe(df_yearly_kpi)
 
-    # 📈 **Yearly Revenue Growth**
+        #  **Yearly Revenue Growth**
     if selected_yearly_kpi == "Kpi_yearly_revenue_growth":
         st.subheader(" Yearly Revenue Growth")
     
-        if "year" in df_yearly_kpi.columns and "revenue_growth_percentage" in df_yearly_kpi.columns:
-            fig = px.line(
-            df_yearly_kpi, 
-            x="year", 
-            y="revenue_growth_percentage",
-            text=df_yearly_kpi["revenue_growth_percentage"].round(2),  # ✅ Display data labels
-            title="Yearly Revenue Growth (%)",
-            markers=True,  # ✅ Add markers for better visualization
-            labels={"revenue_growth_percentage": "Revenue Growth (%)"}
-        )
+        if "year" in df_yearly_kpi.columns and "revenue_growth_percentage" in df_yearly_kpi.columns and "total_revenue" in df_yearly_kpi.columns:
+            # ✅ Handle NaN values
+            df_yearly_kpi = df_yearly_kpi.dropna(subset=["revenue_growth_percentage", "total_revenue"])
 
-        # ✅ Ensure data labels are visible
-            fig.update_traces(textposition="top center")  
+        if df_yearly_kpi.empty:
+            st.warning("⚠ No valid data available after removing NaN values.")
+        else:
+            # ✅ Dual-axis plot: Bar for revenue & Line for growth %
+            fig = px.bar(
+                df_yearly_kpi, 
+                x="year", 
+                y="total_revenue",
+                text=df_yearly_kpi["total_revenue"].round(2),
+                title="Yearly Revenue and Growth",
+                labels={"total_revenue": "Total Revenue ($)", "year": "Year"},
+                color="year"
+            )
+
+            # ✅ Add revenue growth as a line plot on the same figure
+            fig.add_scatter(
+                x=df_yearly_kpi["year"], 
+                y=df_yearly_kpi["revenue_growth_percentage"], 
+                mode="lines+markers+text",
+                text=df_yearly_kpi["revenue_growth_percentage"].round(2),
+                name="Revenue Growth (%)",
+                textposition="top center"
+            )
 
             st.plotly_chart(fig)
 
-        else:
-            st.warning("⚠ Required columns missing: 'year' or 'revenue_growth_percentage'")
-
-
-
+    
 
     # elif selected_yearly_kpi == "Kpi_yearly_customer_retention":
     #     st.subheader("👥 Yearly Customer Growth")
@@ -213,7 +246,7 @@ elif page == "KPIs":
 
 
 
-        # 💰 **Average Order Value**
+        #  **Average Order Value**
     elif selected_yearly_kpi == "Kpi_yearly_avg_order_value":
             if "avg_order_value" in df_yearly_kpi.columns:
                 st.subheader(" Yearly Average Order Value")
@@ -287,11 +320,33 @@ elif page == "Aggregates":
         st.dataframe(df_agg)
 
         # **Visualization Based on Selected Aggregate**
+        # if selected_agg == "agg_customer_orders":
+        #     st.subheader(" Customer Order Distribution")
+        #     fig = px.bar(df_agg, x="customer_state", y="total_orders", color="customer_state", 
+        #                  title="Total Orders by State", text_auto=False)
+        #     st.plotly_chart(fig)
         if selected_agg == "agg_customer_orders":
-            st.subheader(" Customer Order Distribution")
-            fig = px.bar(df_agg, x="customer_state", y="total_orders", color="customer_state", 
-                         title="Total Orders by State", text_auto=True)
-            st.plotly_chart(fig)
+            st.subheader("Customer Order Distribution")
+
+    # Ensure df_agg is not empty before processing
+            if not df_agg.empty:
+        # Aggregate total orders by state
+                df_agg_grouped = df_agg.groupby("customer_state", as_index=False).agg({"total_orders": "sum"})
+
+        # Plot the bar chart
+                fig = px.bar(
+            df_agg_grouped, 
+            x="customer_state", 
+            y="total_orders", 
+            color="customer_state", 
+            title="Total Orders by State", 
+            text_auto=True  # Enables text labels on bars
+            )
+
+                st.plotly_chart(fig)
+            else:
+                st.warning("⚠ No data available for customer orders.")
+
 
         elif selected_agg == "agg_product_performance":
             st.subheader(" Product Performance Metrics")
@@ -354,7 +409,7 @@ elif page == "Data Marts":
     elif selected_mart == "customer_insights_data_mart":
         st.subheader(" Customer Insights")
         fig = px.pie(df_mart, names="customer_state", values="total_orders", 
-                     title="Customer Distribution by City")
+                     title="Customer Distribution by State")
         st.plotly_chart(fig)
 
     elif selected_mart == "product_performance_data_mart":
