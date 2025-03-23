@@ -4,9 +4,9 @@ import pandas as pd
 from data_cleaning import load_data_to_bigquery
 from config import PROJECT_ID,DATASET_ID
 from google.cloud import bigquery
-#from kpi import execute_kpi_queries
-from kpi2 import kpi_queries
-
+from kpi import execute_kpi_queries
+# from agg import create_aggregates
+# from datamarts import create_data_marts
 
 
 def main():
@@ -94,8 +94,12 @@ def main():
 #     load_data_to_bigquery(dim_sellers, 'dim_sellers')
 #     load_data_to_bigquery(dim_payment_types, 'dim_payment_types')
 
-    #execute_kpi_queries()
-    kpi_queries()
+    execute_kpi_queries()
+    
+
+    #create_aggregates()
+
+    #create_data_marts()
    
 
 if __name__ == "__main__":
