@@ -5,26 +5,21 @@ import random
 import uuid
 from faker import Faker
 from google.cloud import bigquery
-from config import PROJECT_ID, DATASET_ID
-
+#from config import PROJECT_ID, DATASET_ID
+import os
+from dotenv import load_dotenv
+load_dotenv()
+PROJECT_ID=os.getenv("PROJECT_ID")
+DATASET_ID=os.getenv("DATASET_ID")
 
 # Initialize the BigQuery client
-#client = bigquery.Client()
+client = bigquery.Client()
 
 
-# def importing_data():
-#     kaggle.api.authenticate()
-#     kaggle.api.dataset_download_files('olistbr/brazilian-ecommerce',path='./data', unzip=True)
+def importing_data():
+    kaggle.api.authenticate()
+    kaggle.api.dataset_download_files('olistbr/brazilian-ecommerce',path='./data', unzip=True)
 
-# import pandas as pd
-# from google.cloud import bigquery
-# #from config import PROJECT_ID, DATASET_ID#import KAGGLE_DATASET 
-# #import kaggle
-# from faker import Faker
-# import random
-# import uuid
-
-#Initialize the BigQuery client
 
 
 
@@ -54,9 +49,6 @@ def clean_and_transform_data(df):
     df['review_score'] = df['review_score'].fillna(df['review_score'].mean())  # Fill missing review scores with mean
     df['payment_installments'] = df['payment_installments'].fillna(df['payment_installments'].median())  # Fill with median
 
-    # Fill categorical missing values
-    # df[['payment_type', 'product_category_name_english', 'seller_city', 'seller_state', 'customer_city', 'customer_state']] = \
-    #     df[['payment_type', 'product_category_name_english', 'seller_city', 'seller_state', 'customer_city', 'customer_state']].fillna("Unknown")
     
     import random
     product_categories = ['housewares', 'electronics', 'clothing', 'home', 'books', 'sports']
@@ -136,13 +128,6 @@ def clean_and_transform_data(df):
 
     return df
 
-# def load_data_to_bigquery(df, table_name):
-#     """Loads the cleaned data into BigQuery."""
-#     table_id = f"{PROJECT_ID}.{DATASET_ID}.{table_name}"
-#     job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
-#     job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
-#     job.result()  # Wait for the job to complete
-#     print(f"Data loaded to {table_name} successfully.")
 
 
 def load_data_to_bigquery(df, table_name):
