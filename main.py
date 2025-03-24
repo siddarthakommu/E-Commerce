@@ -3,12 +3,12 @@ from fake_data_generation import generate_fake_data
 import pandas as pd
 from data_cleaning import load_data_to_bigquery
 #from config import PROJECT_ID,DATASET_ID
-import os
-from dotenv import load_dotenv
 from google.cloud import bigquery
 from kpi import execute_kpi_queries
-# from agg import create_aggregates
-# from datamarts import create_data_marts
+from agg import create_aggregates
+from datamarts import create_data_marts
+import os
+from dotenv import load_dotenv
 load_dotenv()
 PROJECT_ID=os.getenv("PROJECT_ID")
 DATASET_ID=os.getenv("DATASET_ID")
