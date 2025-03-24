@@ -222,30 +222,6 @@ elif page == "KPIs":
 
     
 
-    # elif selected_yearly_kpi == "Kpi_yearly_customer_retention":
-    #     st.subheader("👥 Yearly Customer Growth")
-
-    #     if "year" in df_yearly_kpi.columns and "total_customers" in df_yearly_kpi.columns:
-    #         fig = px.bar(
-    #         df_yearly_kpi,
-    #         x="year",
-    #         y="new_customers",
-    #         text=df_yearly_kpi["total_customers"],
-    #         title="New Customers Per Year",
-    #         labels={"total_customers": "total Customers"},
-    #         color="total_customers",
-    #         color_continuous_scale="blues"
-    #     )
-    #         fig.update_traces(textposition="outside")
-    #         st.plotly_chart(fig)
-    #     else:
-    #         st.warning("⚠ Required columns missing: 'year' or 'new_customers'")
-
-
-
-
-
-
         #  **Average Order Value**
     elif selected_yearly_kpi == "Kpi_yearly_avg_order_value":
             if "avg_order_value" in df_yearly_kpi.columns:
@@ -392,7 +368,7 @@ elif page == "Aggregates":
 elif page == "Data Marts":
     st.title(" Data Marts Insights")
 
-    data_mart_options = ["sales_data_mart", "customer_insights_data_mart", "product_performance_data_mart"]
+    data_mart_options = ["sales_data_mart",  "product_performance_data_mart"]
     selected_mart = st.selectbox("Select Data Mart Table", data_mart_options)
 
     query = f"SELECT * FROM `e-commerce-453806.New_E_Commerce.{selected_mart}` LIMIT 50000"
