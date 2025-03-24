@@ -313,7 +313,7 @@ elif page == "Aggregates":
     selected_agg = st.selectbox("Select Aggregate Table", aggregate_options, key="agg_table_select")
 
     # Fetch Data
-    query = f"SELECT * FROM `e-commerce-453806.New_E_Commerce.{selected_agg}` LIMIT 10000"
+    query = f"SELECT * FROM `e-commerce-453806.New_E_Commerce.{selected_agg}` LIMIT 50000"
     df_agg = fetch_data(query)
 
     if not df_agg.empty:
@@ -395,7 +395,7 @@ elif page == "Data Marts":
     data_mart_options = ["sales_data_mart", "customer_insights_data_mart", "product_performance_data_mart"]
     selected_mart = st.selectbox("Select Data Mart Table", data_mart_options)
 
-    query = f"SELECT * FROM `e-commerce-453806.New_E_Commerce.{selected_mart}` LIMIT 1000"
+    query = f"SELECT * FROM `e-commerce-453806.New_E_Commerce.{selected_mart}` LIMIT 50000"
     df_mart = fetch_data(query)
 
     st.dataframe(df_mart)
@@ -403,18 +403,122 @@ elif page == "Data Marts":
     if selected_mart == "sales_data_mart":
         st.subheader("Sales Performance")
         fig = px.bar(df_mart, x="customer_state", y="revenue", color="customer_state",
-                     title="Total Sales by State")
+                    #text=df_mart["revenue"],
+                    title="Total Sales by State")
+        fig.update_traces(textposition="outside")
         st.plotly_chart(fig)
 
+    # if selected_mart == "sales_data_mart":
+    #     st.subheader("📊 Sales Performance")
+
+    #     if "customer_state" in df_mart.columns and "revenue" in df_mart.columns:
+    #         fig = px.bar(
+    #         df_mart, 
+    #         x="customer_state", 
+    #         y="revenue", 
+    #         color="customer_state",
+    #         text=df_mart["revenue"],  # Display revenue values on bars
+    #         title="Total Sales by State",
+    #         labels={"customer_state": "State", "revenue": "Total Revenue"}
+    #     )
+
+    #     # Adjust layout for better readability
+    #         fig.update_traces(textposition="outside")  # Move text outside the bars
+
+    #         st.plotly_chart(fig)
+
+    #     else:
+    #         st.warning("⚠ Required columns missing: 'customer_state' or 'revenue'")
+
+
+    # elif selected_mart == "customer_insights_data_mart":
+    #     st.subheader(" Customer Insights")
+    #     fig = px.pie(df_mart, names="customer_state", values="total_orders", 
+    #                  title="Customer Distribution by State")
+    #     st.plotly_chart(fig)
     elif selected_mart == "customer_insights_data_mart":
-        st.subheader(" Customer Insights")
-        fig = px.pie(df_mart, names="customer_state", values="total_orders", 
-                     title="Customer Distribution by State")
-        st.plotly_chart(fig)
+        if "customer_state" in df_mart.columns and "total_orders" in df_mart.columns:
+            st.subheader("📊 Customer Insights - Orders by State")
+
+        # Convert total_orders to numeric to avoid formatting issues
+            df_mart["total_orders"] = pd.to_numeric(df_mart["total_orders"], errors="coerce")
+
+        # Sorting for better visualization
+            df_mart = df_mart.sort_values(by="total_orders", ascending=False)
+
+        # Create bar chart with correct labels
+            fig = px.bar(
+            df_mart, 
+            x="customer_state", 
+            y="total_orders", 
+            color="customer_state",
+            title="Total Orders by State",
+            labels={"customer_state": "State", "total_orders": "Total Orders"},
+        )
+
+        # **Fixing the text issue**
+            fig.update_traces(
+            text=df_mart["total_orders"].astype(str),  # Convert to string to display properly
+            textposition="outside"  # Ensure text appears above the bars
+        )
+
+        # Updating layout for visibility
+            fig.update_layout(
+            xaxis_title="Customer State",
+            yaxis_title="Total Orders",
+            height=600,
+            showlegend=False
+        )
+
+            st.plotly_chart(fig)
+
+        else:
+            st.warning("⚠ Required columns missing: 'customer_state' or 'total_orders'")
+
+
+
+
+
+    # elif selected_mart == "product_performance_data_mart":
+    #     st.subheader(" Product Performance Insights")
+    #     fig = px.scatter(df_mart, x="category", y="total_orders",
+    #              size="total_revenue", color="category",
+    #              title="Total Orders vs Revenue by Product Category")
+    #     st.plotly_chart(fig)
 
     elif selected_mart == "product_performance_data_mart":
         st.subheader(" Product Performance Insights")
-        fig = px.scatter(df_mart, x="category", y="total_orders",
-                 size="total_revenue", color="category",
-                 title="Total Orders vs Revenue by Product Category")
-        st.plotly_chart(fig)
+
+    # Ensure the dataframe has the required columns
+        if "category" in df_mart.columns and "total_orders" in df_mart.columns and "avg_review_score" in df_mart.columns:
+            
+
+    # Sorting categories for better visualization
+            df_mart = df_mart.sort_values(by="total_orders", ascending=False)
+
+    # Create a bar chart with total orders per category
+            fig = px.bar(
+        df_mart, 
+        x="category", 
+        y="total_orders",
+        color="avg_review_score",  # Color based on review score
+        hover_data={"avg_review_score": True},  # Show review score on hover
+        title="Total Orders and Avg Review Score by Product Category",
+        labels={"avg_review_score": "Avg Review Score", "total_orders": "Total Orders"},
+        text=df_mart["avg_review_score"].round(2)  # Display avg review score as text on bars
+    )
+
+    # Adjust layout to improve readability
+            fig.update_layout(
+        xaxis={"categoryorder": "total descending"},  # Order categories by total_orders
+        yaxis_title="Total Orders",
+        xaxis_title="Product Category",
+        height=600
+    )
+
+            st.plotly_chart(fig)
+
+        else:
+            st.warning("⚠ Required columns missing: 'category', 'total_orders', or 'avg_review_score'")
+
+  
