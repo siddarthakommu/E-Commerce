@@ -1,6 +1,11 @@
 from google.cloud import bigquery
 from config import PROJECT_ID, DATASET_ID  # Ensure you have a config file
 import time
+import os
+from dotenv import load_dotenv
+load_dotenv()
+PROJECT_ID=os.getenv("PROJECT_ID")
+DATASET_ID=os.getenv("DATASET_ID")
 
 # Initialize BigQuery Client
 client = bigquery.Client(project=PROJECT_ID)
