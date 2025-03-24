@@ -1,6 +1,11 @@
 from google.cloud import bigquery
 from config import PROJECT_ID, DATASET_ID  
 import time
+import os
+from dotenv import load_dotenv
+load_dotenv()
+PROJECT_ID=os.getenv("PROJECT_ID")
+DATASET_ID=os.getenv("DATASET_ID")
 
 # Initialize BigQuery Client
 client = bigquery.Client(project=PROJECT_ID)
@@ -22,55 +27,55 @@ def create_aggregates():
     """Creates aggregated tables in BigQuery."""
     
     agg_queries = {
-        # "agg_order_summary": """
-        #     CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_order_summary` AS
-        #     SELECT 
-        #         order_status,
-        #         COUNT(order_id) AS total_orders,
-        #         SUM(payment_value) AS total_revenue,
-        #         AVG(payment_value) AS avg_order_value
-        #     FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders`
-        #     GROUP BY order_status;
-        # """,
+        "agg_order_summary": """
+            CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_order_summary` AS
+            SELECT 
+                order_status,
+                COUNT(order_id) AS total_orders,
+                SUM(payment_value) AS total_revenue,
+                AVG(payment_value) AS avg_order_value
+            FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders`
+            GROUP BY order_status;
+        """,
 
-        # "agg_customer_orders": """
-        #     CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_customer_orders` AS
-        #     SELECT 
-        #         c.customer_id,
-        #         c.customer_city,
-        #         c.customer_state,
-        #         COUNT(f.order_id) AS total_orders,
-        #         SUM(f.payment_value) AS total_spent
-        #     FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders` f
-        #     JOIN `{PROJECT_ID}.{DATASET_ID}.dim_customers` c 
-        #     ON f.customer_id = c.customer_id
-        #     GROUP BY c.customer_id, c.customer_city, c.customer_state;
-        # """,
+        "agg_customer_orders": """
+            CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_customer_orders` AS
+            SELECT 
+                c.customer_id,
+                c.customer_city,
+                c.customer_state,
+                COUNT(f.order_id) AS total_orders,
+                SUM(f.payment_value) AS total_spent
+            FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders` f
+            JOIN `{PROJECT_ID}.{DATASET_ID}.dim_customers` c 
+            ON f.customer_id = c.customer_id
+            GROUP BY c.customer_id, c.customer_city, c.customer_state;
+        """,
 
-        # "agg_product_performance": """
-        #     CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_product_performance` AS
-        #     SELECT 
-        #         p.product_category_name_english AS category,
-        #         COUNT(f.order_id) AS total_orders,
-        #         SUM(f.payment_value) AS total_revenue,
-        #         AVG(f.review_score) AS avg_review_score
-        #     FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders` f
-        #     JOIN `{PROJECT_ID}.{DATASET_ID}.dim_products` p 
-        #     ON f.product_id = p.product_id
-        #     GROUP BY category;
-        # """,
+        "agg_product_performance": """
+            CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_product_performance` AS
+            SELECT 
+                p.product_category_name_english AS category,
+                COUNT(f.order_id) AS total_orders,
+                SUM(f.payment_value) AS total_revenue,
+                AVG(f.review_score) AS avg_review_score
+            FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders` f
+            JOIN `{PROJECT_ID}.{DATASET_ID}.dim_products` p 
+            ON f.product_id = p.product_id
+            GROUP BY category;
+        """,
 
-        # "agg_state_revenue": """
-        #     CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_state_revenue` AS
-        #     SELECT 
-        #         c.customer_state,
-        #         SUM(f.payment_value) AS total_revenue
-        #     FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders` f
-        #     JOIN `{PROJECT_ID}.{DATASET_ID}.dim_customers` c 
-        #     ON f.customer_id = c.customer_id
-        #     GROUP BY c.customer_state;
-        # """
-        "agg_orders_per_installment": """
+        "agg_state_revenue": """
+            CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_state_revenue` AS
+            SELECT 
+                c.customer_state,
+                SUM(f.payment_value) AS total_revenue
+            FROM `{PROJECT_ID}.{DATASET_ID}.fact_orders` f
+            JOIN `{PROJECT_ID}.{DATASET_ID}.dim_customers` c 
+            ON f.customer_id = c.customer_id
+            GROUP BY c.customer_state;
+        """
+        "agg_orders_per_installment" """
         CREATE OR REPLACE TABLE `{PROJECT_ID}.{DATASET_ID}.agg_orders_per_installment` AS
         SELECT 
             payment_installments,
