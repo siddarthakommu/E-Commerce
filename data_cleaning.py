@@ -136,18 +136,18 @@ def load_data_to_bigquery(df, table_name):
     """Loads the cleaned data into BigQuery."""
     table_id = f"{PROJECT_ID}.{DATASET_ID}.{table_name}"
 
-    # Print DataFrame Columns
+    
     print("Columns in DataFrame before upload:", df.columns.tolist())
 
-    # Ensure 'review_creation_date' exists before adding it to schema
+    
     expected_columns = ['order_purchase_timestamp', 'order_delivered_customer_date', 'order_estimated_delivery_date']
     available_columns = [col for col in expected_columns if col in df.columns]
 
-    # Convert to datetime format
+    
     for col in available_columns:
         df[col] = pd.to_datetime(df[col], errors='coerce')
 
-    # Define BigQuery Schema dynamically based on available columns
+    
     schema = [bigquery.SchemaField(col, "TIMESTAMP") for col in available_columns]
 
     job_config = bigquery.LoadJobConfig(
@@ -155,9 +155,9 @@ def load_data_to_bigquery(df, table_name):
         write_disposition="WRITE_TRUNCATE",
     )
 
-    # Upload to BigQuery
+    
     job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
-    job.result()  # Wait for job completion
+    job.result()  
     print(f"Data loaded to {table_name} successfully.")
 
 
